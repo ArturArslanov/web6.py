@@ -21,7 +21,7 @@ toponym = json_response["response"]["GeoObjectCollection"][
 toponym_coodrinates = toponym["Point"]["pos"]
 toponym_longitude, toponym_lattitude = toponym_coodrinates.split(" ")
 
-delta = f"{find_spn(toponym_to_find)}"
+delta = f"{find_spn(', '.join([toponym_longitude, toponym_lattitude]))}"
 map_params = {
     "ll": ",".join([toponym_longitude, toponym_lattitude]),
     "spn": ",".join([delta, delta]),

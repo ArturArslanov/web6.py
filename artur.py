@@ -29,7 +29,7 @@ map_params = {
     "spn": ",".join([delta, delta]),
     "l": "map"
 }
-print('hel')
+print('helLO')
 map_api_server = "http://static-maps.yandex.ru/1.x/"
 response = requests.get(map_api_server, params=map_params)
 Image.open(BytesIO(

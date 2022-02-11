@@ -2,7 +2,6 @@ from pprint import pprint
 
 import requests as req
 import sys
-
 address = " ".join(sys.argv[1:])
 
 

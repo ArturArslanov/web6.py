@@ -1,6 +1,5 @@
 from pprint import pprint
 from math import radians, cos, sqrt
-
 import requests as req
 
 

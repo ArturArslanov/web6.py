@@ -1,49 +1,50 @@
-import sys
-from io import BytesIO
 from pprint import pprint
-import requests
-from PIL import Image, ImageDraw, ImageFont
-from funcs import find_apteka, find_spn, lonlat_distance
 
-toponym_to_find = " ".join(sys.argv[1:])
+import requests as req
+import sys
+
+address = " ".join(sys.argv[1:])
+
+
+def quer(name, address=None):
+    quer = "https://search-maps.yandex.ru/v1/"
+    api_key = 'dda3ddba-c9ea-4ead-9010-f43fbc15c6e3'
+    params = {
+        "apikey": api_key,
+        "text": name,
+        "lang": "en_US",
+        'results': '1'
+    }
+    if address:
+        params['ll'] = address
+    return req.get(quer, params=params)
+
+
+def find_apteka(name):
+    response = quer(name)
+    if not response:
+        raise AttributeError(response.content)
+    res = response.json()
+    coords = res['features'][0]['geometry']['coordinates']
+    return coords
+
+
+coords = find_apteka(address)
 geocoder_api_server = "http://geocode-maps.yandex.ru/1.x/"
+
 geocoder_params = {
     "apikey": "40d1649f-0493-4b70-98ba-98533de7710b",
-    "geocode": toponym_to_find,
-    "format": "json"}
-response = requests.get(geocoder_api_server, params=geocoder_params)
+    "geocode": ", ".join(map(str, coords)),
+    "format": "json",
+    "kind": 'district',
+    "results": '1'
+}
+response = req.get(geocoder_api_server, params=geocoder_params)
 
 if not response:
     raise AttributeError(response.content)
+res = response.json()
+district = res["response"]["GeoObjectCollection"][
+    "featureMember"][0]["GeoObject"]['metaDataProperty']['GeocoderMetaData']['Address']['Components'][-1]['name']
 
-json_response = response.json()
-toponym = json_response["response"]["GeoObjectCollection"][
-    "featureMember"][0]["GeoObject"]
-toponym_coodrinates = toponym["Point"]["pos"]
-toponym_longitude, toponym_lattitude = toponym_coodrinates.split(" ")
-
-delta = f"{find_spn(toponym_to_find)}"
-
-apteka_coords, info = find_apteka(",".join([toponym_longitude, toponym_lattitude]))
-distance = round(lonlat_distance(map(float, apteka_coords), (float(toponym_longitude), float(toponym_lattitude))))
-info = f'{info}\ndistance - {distance} m'
-print('\u2013')
-map_params = {
-    "ll": ",".join([toponym_longitude, toponym_lattitude]),
-    "l": "map",
-    "pt": f'{",".join([toponym_longitude, toponym_lattitude])},pmdos1~{",".join(map(str, apteka_coords))},pmgns2',
-}
-map_api_server = "http://static-maps.yandex.ru/1.x/"
-response = requests.get(map_api_server, params=map_params)
-im = Image.open(BytesIO(response.content))
-draw_text = ImageDraw.Draw(im)
-im.load()
-draw_text.text((0, 100 - 60),
-               info.split('\n')[0], fill=(100, 100, 100))
-draw_text.text((0, 120 - 60),
-               info.split('\n')[1], fill=(100, 100, 100))
-draw_text.text((0, 140 - 60),
-               info.split('\n')[2].replace('\u2013', '-'), fill=(100, 100, 100))
-draw_text.text((0, 160 - 60),
-               info.split('\n')[3], fill=(100, 100, 100))
-im.show()
+print(f"{district} - район в котором находится '{address}'")

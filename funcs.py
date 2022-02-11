@@ -37,10 +37,10 @@ def find_apteka(address):
         raise AttributeError(response.content)
     res = response.json()
     coords = res['features'][0]['geometry']['coordinates']
-    info = res['features'][0]['properties']['CompanyMetaData']
-    name = f"Pharmacy - {info['name']} \naddress: {info['address']}"
-    name = f"{name} \nwork time: {info['Hours']['text']}"
-    return coords, name
+    # info = res['features'][0]['properties']['CompanyMetaData']
+    # name = f"Pharmacy - {info['name']} \naddress: {info['address']}"
+    # name = f"{name} \nwork time: {info['Hours']['text']}"
+    return coords
 
 
 def find_spn(toponym):
